@@ -1,0 +1,1 @@
+0x03be8e72027ebf243ff50e3c384e3f0e8a636f68974977ab6de44ab0a9bc33ab:artifacts/abis/MintableIncentivizedERC20.json:mintable

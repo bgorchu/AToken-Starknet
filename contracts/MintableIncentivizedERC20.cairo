@@ -46,12 +46,13 @@ func total_Supply{
     return (totalSupply)
 end
 
-@view
+
+@external
 func addbalance{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(balance:Uint256, additionalData:felt) :
+    }(balance:Uint256, additionalData:felt):
     let (caller_address) = get_caller_address()
     IncentivizedERC20.addBalance(caller_address, balance, additionalData)
     return ()
@@ -64,9 +65,49 @@ func balanceof{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(account:felt) -> (balance: Uint256):
-    let (totalSupply: Uint256) = IncentivizedERC20.balanceOf(account)
-    return (totalSupply)
+    let (balance) = IncentivizedERC20.balanceOf(account)
+    return (balance)
 end
+
+
+@external
+func Approve{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(spender:felt, amount:Uint256) -> ():
+
+    let (caller_address) = get_caller_address()
+
+    
+    IncentivizedERC20.approve(caller_address, spender, amount)
+    return ()
+end
+
+@external
+func Allowance{syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr}(owner:felt, spender: felt)->(res:Uint256): 
+
+
+        let (res) = IncentivizedERC20.allowance(owner, spender)
+        return (res)
+end
+
+
+@external
+func Transfer{syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr}(recipient:felt, amount:Uint256)-> (success: felt):
+
+
+    let (caller_address) = get_caller_address()
+
+    IncentivizedERC20.transfer(caller_address, recipient, amount)
+
+    return (TRUE)
+end
+
 
 
 @view

@@ -60,6 +60,7 @@ async def application_factory(account_factory):
     starknet, accounts = account_factory
     name=str_to_felt("TEST")
     symbol=str_to_felt("TST")
+    
 
     application = await starknet.deploy(
         source=CONTRACT_FILE,
@@ -81,7 +82,7 @@ async def test_create_and_read_allowance(application_factory):
     # Create a new Starknet class that simulates the StarkNet
     # system.
 
-    starknet = await Starknet.empty()
+    # starknet = await Starknet.empty()
     _, accounts, application = application_factory
 
     user_0 = accounts[0]
@@ -92,16 +93,22 @@ async def test_create_and_read_allowance(application_factory):
     execution_info = await application.Symbol().invoke()
     assert execution_info.result.symbol== str_to_felt("TST")
 
+    
+
+    balanceStruct=divmod(100, 2**128)
+
 
     await user_0.tx_with_nonce(
         to=application.contract_address,
         selector_name='addbalance',
-        calldata=[100, 1])
+        calldata=[balanceStruct[0], balanceStruct[1], 1])
+
 
     
-    # #check added balance
-    # execution_info = await application.balanceof(user_0.address).call()
-    # assert execution_info.result == (100,)
+    #check added balance
+    execution_info = await application.balanceof(user_0.address).call()
+    print(execution_info)
+    assert execution_info.result.balance == divmod(100, 2**128)
 
 
 
@@ -121,36 +128,47 @@ async def test_create_and_read_allowance(application_factory):
 
 
    
+    balanceStruct=divmod(10, 2**128)
 
 
-    # await user_1.tx_with_nonce(
-    #     to=application.contract_address,
-    #     selector_name='addbalance',
-    #     calldata=[10, 1])
+    await user_1.tx_with_nonce(
+        to=application.contract_address,
+        selector_name='addbalance',
+        calldata=[balanceStruct[0], balanceStruct[1], 1])
 
     # get UserState
-    # execution_info = await application.balanceof(user_1.address).invoke()
-    # print(execution_info)
-    # assert execution_info.result.balance== 10
+    execution_info = await application.balanceof(user_1.address).invoke()
+    print(execution_info)
+    assert execution_info.result.balance== divmod(10, 2**128)
 
     
 
+    amountStruct=divmod(50, 2**128)
+
     #Approve user 2 to use 50 tokens
-    # await user_0.tx_with_nonce(
-    #     to=application.contract_address,
-    #     selector_name='approve',
-    #     calldata=[user_1.address, 50])
+    await user_0.tx_with_nonce(
+        to=application.contract_address,
+        selector_name='Approve',
+        calldata=[user_1.address, amountStruct[0], amountStruct[1]])
 
-    # execution_info = await application.allowance(user_0.address,user_1.address).invoke()
-    # print(execution_info)
-    # assert execution_info.result.res== 50
+    execution_info = await application.Allowance(user_0.address,user_1.address).invoke()
+    print(execution_info)
+    assert execution_info.result.res== divmod(50, 2**128)
 
 
-    # await application._transfer(user_0.address,user_1.address, 10).invoke()
-    # execution_info = await application.balanceOf(user_1.address).invoke()
-    # print(execution_info)
+    transferStruct= divmod(10, 2**128)
 
-    # assert execution_info.result.balance== 20
+
+    await user_0.tx_with_nonce(
+        to=application.contract_address,
+        selector_name='Transfer',
+        calldata=[user_1.address, transferStruct[0], transferStruct[1]])
+
+    # await application.Transfer(user_1.address, transferStruct[0], transferStruct[1]).invoke()
+    execution_info = await application.balanceof(user_1.address).invoke()
+    print(execution_info)
+
+    assert execution_info.result.balance== divmod(20, 2**128)
 
 
     # await application._mint(user_1.address, 20).invoke()

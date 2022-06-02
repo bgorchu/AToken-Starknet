@@ -6,8 +6,6 @@ from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_sub
 from starkware.cairo.common.bool import TRUE
 from openzeppelin.security.safemath import uint256_checked_add, uint256_checked_sub_le
 
-
-
 # onlyPoolAdmin modifier
 # onlyPool modifier
 
@@ -198,14 +196,12 @@ end
 @external
 func transfer{syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
-        range_check_ptr}(recipient:felt, amount:Uint256)-> (success: felt):
+        range_check_ptr}(sender:felt, recipient:felt, amount:Uint256)-> (success: felt):
 
 
     #AAVE casts amount to uint128 
 
-    let (caller_address) = get_caller_address()
-
-    _transfer(caller_address, recipient, amount)
+    _transfer(sender, recipient, amount)
 
     return (TRUE)
 end
@@ -240,15 +236,15 @@ end
 @external
 func approve{syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
-        range_check_ptr}(spender:felt, amount: Uint256):
+        range_check_ptr}(owner:felt, spender:felt, amount: Uint256):
 
-    let (caller_address) = get_caller_address()
 
-    _approve(caller_address,spender, amount)
+    _approve(owner,spender, amount)
     return()
 end
 
-#amount needs to be uint but its temporarily felt
+
+
 #this function needs to be internal
 func _approve{syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
