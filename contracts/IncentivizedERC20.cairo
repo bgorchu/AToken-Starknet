@@ -5,60 +5,39 @@ from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_sub
 from starkware.cairo.common.bool import TRUE
 from openzeppelin.security.safemath import uint256_checked_add, uint256_checked_sub_le
+# from openzeppelin.token.erc20.library import ERC20
 
 # onlyPoolAdmin modifier
 # onlyPool modifier
 
-struct UserState:
-    member balance : Uint256
-    member additionalData : felt
-end
 
 
+# @storage_var
+# func _userState(address : felt) -> (state : UserState):
+# end
 
-# temporary replacement for IAaveIncentivesController contract
-struct IAaveIncentivesController:
-    member temp1: felt
-end
-
-
-# temporary replacement for IpoolAddressesProvider contract
-struct IPoolAddressesProvider:
-    member temp1: felt
-end
-
-
-# temporary replacement for Ipool contract
-struct IPool:
-    member _addressesProvider: IPoolAddressesProvider
-end
-
-@storage_var
-func _userState(address : felt) -> (state : UserState):
-end
-
-@storage_var
-func _allowances(delegator : felt, delegatee : felt) -> (allowance : Uint256):
-end
+# @storage_var
+# func _allowances(delegator : felt, delegatee : felt) -> (allowance : Uint256):
+# end
 
 # private vs internal variables?
 # Strings are felts in the OpenZeppelin implementation
 
-@storage_var
-func _totalSupply() -> (totalSupply : Uint256):
-end
+# @storage_var
+# func _totalSupply() -> (totalSupply : Uint256):
+# end
 
-@storage_var
-func _name() -> (name : felt):
-end
+# @storage_var
+# func _name() -> (name : felt):
+# end
 
-@storage_var
-func _symbol() -> (symbol: felt):
-end
+# @storage_var
+# func _symbol() -> (symbol: felt):
+# end
 
-@storage_var
-func _decimals() -> (decimals : felt):
-end
+# @storage_var
+# func _decimals() -> (decimals : felt):
+# end
 
 
 # needs to be internal
@@ -88,37 +67,21 @@ end
 namespace IncentivizedERC20:
 
 
-#decimals needs to be uint8 
-#addressesProvider and Pool not implemented
-# @constructor
-# func constructor{
-#         syscall_ptr: felt*,
-#         pedersen_ptr: HashBuiltin*,
-#         range_check_ptr}(name:felt, symbol:felt, decimals: felt):
-
-#     # _addressesProvider.write(pool._addressesProvider) #needs to call a function inside pool called .ADDRESSES_PROVIDER()
-#     _name.write(name)
-#     _symbol.write(symbol)
-#     _decimals.write(decimals)
-#     # POOL.write(pool)
-
-#     return ()
-    
-# end
-
-
 # @constructor
 func initializer{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
-        range_check_ptr}(name:felt, symbol:felt, decimals: felt):
+        range_check_ptr}(name:felt, symbol:felt, decimals: felt,initial_supply: Uint256,
+        recipient: felt):
 
     # _addressesProvider.write(pool._addressesProvider) #needs to call a function inside pool called .ADDRESSES_PROVIDER()
     let (caller_address) = get_caller_address()
+    # ERC20.initializer(name, symbol, decimals)
+    # ERC20._mint(recipient, initial_supply)
 
-    _name.write(name)
-    _symbol.write(symbol)
-    _decimals.write(decimals)
+    # _name.write(name)
+    # _symbol.write(symbol)
+    # _decimals.write(decimals)
     owner.write(caller_address)
     # POOL.write(pool)
 
@@ -128,62 +91,116 @@ end
 
 
 
-
-
 @view
 func name{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }() -> (name:felt):
-    let (name) = _name.read()
+    }() -> (name: felt):
+    let (name) = ERC20.name()
     return (name)
 end
-
 
 @view
 func symbol{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }() -> (symbol:felt):
-    let (symbol) = _symbol.read()
+    }() -> (symbol: felt):
+    let (symbol) = ERC20.symbol()
     return (symbol)
 end
-
-
-@view
-func decimals{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }() -> (decimals:felt):
-    let (decimals) = _decimals.read()
-    return (decimals)
-end
-
 
 @view
 func totalSupply{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }() -> (totalSupply:Uint256):
-    let (totalSupply) = _totalSupply.read()
+    }() -> (totalSupply: Uint256):
+    let (totalSupply: Uint256) = ERC20.total_supply()
     return (totalSupply)
 end
 
+@view
+func decimals{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }() -> (decimals: felt):
+    let (decimals) = ERC20.decimals()
+    return (decimals)
+end
 
 @view
 func balanceOf{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(account:felt) -> (balance:Uint256):
-    let (state) = _userState.read(account)
-
-    return (state.balance)
+    }(account: felt) -> (balance: Uint256):
+    let (balance: Uint256) = ERC20.balance_of(account)
+    return (balance)
 end
+
+@view
+func allowance{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(owner: felt, spender: felt) -> (remaining: Uint256):
+    let (remaining: Uint256) = ERC20.allowance(owner, spender)
+    return (remaining)
+end
+
+
+#
+# Externals
+#
+
+# @external
+# func transfer{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(recipient: felt, amount: Uint256) -> (success: felt):
+#     ERC20.transfer(recipient, amount)
+#     return (TRUE)
+# end
+
+# @external
+# func transferFrom{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(
+#         sender: felt,
+#         recipient: felt,
+#         amount: Uint256
+#     ) -> (success: felt):
+#     ERC20.transfer_from(sender, recipient, amount)
+#     return (TRUE)
+# end
+
+
+# @external
+# func increaseAllowance{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(spender: felt, added_value: Uint256) -> (success: felt):
+#     ERC20.increase_allowance(spender, added_value)
+#     return (TRUE)
+# end
+
+# @external
+# func decreaseAllowance{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(spender: felt, subtracted_value: Uint256) -> (success: felt):
+#     ERC20.decrease_allowance(spender, subtracted_value)
+#     return (TRUE)
+# end
+
 
 
 #getIncentivesController() function
@@ -250,8 +267,8 @@ func _approve{syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr}(owner:felt, spender:felt, amount: Uint256):
 
-    _allowances.write(owner,spender, amount)
-    return()
+    ERC20.approve(spender, amount)
+    return (TRUE)
 end
 
 
