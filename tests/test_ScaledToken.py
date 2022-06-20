@@ -88,19 +88,19 @@ async def test_scaled_token(application_factory):
     user_1 = accounts[1]
     user_1_number = 888
 
-    execution_info = await application.name().invoke()
+    execution_info = await application.name().call()
     assert execution_info.result.name== str_to_felt("TEST")
 
-    execution_info = await application.symbol().invoke()
+    execution_info = await application.symbol().call()
     assert execution_info.result.symbol== str_to_felt("TST")
 
-    execution_info = await application.totalSupply().invoke()
+    execution_info = await application.totalSupply().call()
     assert execution_info.result.totalSupply== initialSupply
 
-    execution_info = await application.decimals().invoke()
+    execution_info = await application.decimals().call()
     assert execution_info.result.decimals== 18
 
-    execution_info = await application.balanceOf(user_0.address).invoke()
+    execution_info = await application.balanceOf(user_0.address).call()
     assert execution_info.result.balance== initialSupply  
     
 
@@ -127,40 +127,42 @@ async def test_scaled_token(application_factory):
 
     #Add additionalData
 
-    dataStruct= application.Ray(application.Uint256(500,0))
+    dataStruct= application.Ray(application.Uint256(divmod(1, 2**128)[0],divmod(1, 2**128)[1]))
 
-    execution_info = await application.addData(user=user_0.address, data=dataStruct).call()
-    print(execution_info)
+    execution_info = await application.addData(user=user_0.address, data=dataStruct).invoke()
+    # print(execution_info)
     assert execution_info.result.data == dataStruct
 
     execution_info = await application.readData(user=user_0.address).call()
-    print(execution_info)
+    # print(execution_info)
     assert execution_info.result.data == dataStruct
 
 
-    # await user_1.tx_with_nonce(
-    #     to=application.contract_address,
-    #     selector_name='addData',
-    #     calldata=[user_1.address, dataStruct])
+    execution_info = await application.addData(user=user_1.address, data=dataStruct).invoke()
+    # print(execution_info)
+    assert execution_info.result.data == dataStruct
 
-    # execution_info = await application.readData(user_1.address).call()
-    # assert execution_info.result.data == dataStruct
+    execution_info = await application.readData(user=user_1.address).call()
+    # print(execution_info)
+    assert execution_info.result.data == dataStruct
 
 
     #Test Mint
-    # mintStruct=divmod(100, 2**128)
-    # indexStruct=divmod(2, 2**128)
+    mintStruct=divmod(100, 2**128)
+    indexStruct=application.Ray(application.Uint256(divmod(2, 2**128)[0], divmod(2, 2**128)[1]))
 
+
+    await application._mintScaled(user_1.address, user_0.address, mintStruct, indexStruct).invoke()
 
     # await user_1.tx_with_nonce(
     #     to=application.contract_address,
     #     selector_name='_mintScaled',
-    #     calldata=[user_1.address, user_0.address, mintStruct[0], mintStruct[1], indexStruct[0]])
+    #     calldata=[user_1.address, user_0.address, mintStruct[0], mintStruct[1], indexStruct])
 
 
-    # execution_info = await application.balanceOf(user_0.address).call()
-    # print(execution_info)
-    # assert execution_info.result.balance == transferStruct
+    execution_info = await application.balanceOf(user_0.address).call()
+    print(execution_info)
+    assert execution_info.result.balance == transferStruct
 
    
     # balanceStruct=divmod(10, 2**128)
